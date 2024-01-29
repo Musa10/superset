@@ -8,25 +8,7 @@ on:
     types: [synchronize, opened, reopened, ready_for_review]
 
 jobs:
-  config:
-    runs-on: "ubuntu-latest"
-    outputs:
-      has-secrets: ${{ steps.check.outputs.has-secrets }}
-    steps:
-      - name: "Check for secrets"
-        id: check
-        shell: bash
-        run: |
-          if [ -n "${{ (secrets.DOCKERHUB_USER != '' && secrets.DOCKERHUB_TOKEN != '') || '' }}" ]; then
-            echo "has-secrets=1" >> "$GITHUB_OUTPUT"
-            echo "has secrets!"
-          else
-            echo "has-secrets=0" >> "$GITHUB_OUTPUT"
-            echo "no secrets!"
-          fi
   docker-build:
-    needs: config
-    if: needs.config.outputs.has-secrets
     name: docker-build
     runs-on: ubuntu-latest
     strategy:
@@ -61,9 +43,8 @@ jobs:
         run: |
           ./scripts/docker_build_push.sh "" ${{ matrix.target }} ${{ matrix.platform }}
 
+
   ephemeral-docker-build:
-    needs: config
-    if: needs.config.outputs.has-secrets
     name: docker-build
     runs-on: ubuntu-latest
     steps:
